@@ -4,11 +4,10 @@ const Evento = require("../models/Evento");
 
 const getEventos = async(req, resp = response) => {
 
-    const eventos = await Evento.find()
-                        .populate('user', 'name') // populate user with name
-        ;
-
     try {
+
+        const eventos = await Evento.find()
+        .populate('user', 'name');
 
         return resp.status(200).json(
             {
@@ -17,7 +16,6 @@ const getEventos = async(req, resp = response) => {
             }
     );
 
-        
     } catch (error) {
         return resp.status(400).json({
             ok: false,
@@ -32,9 +30,9 @@ const getEventos = async(req, resp = response) => {
  
 const crearEvento = async (req, resp = response) => {
 
-    const evento = new Evento(req.body);
-
     try {
+
+       const evento = new Evento(req.body);
 
        evento.user = req.uid;
 
@@ -60,10 +58,10 @@ const crearEvento = async (req, resp = response) => {
 
 const actualizarEvento = async (req, resp = response) => {
 
-    const eventoId = req.params.id;
-    const uid = req.uid;
-
     try {
+        
+        const eventoId = req.params.id;
+        const uid = req.uid;
 
         const evento = await Evento.findById(eventoId);
 
@@ -134,8 +132,7 @@ const borrarEvento = async(req, resp = response) => {
             await Evento.findByIdAndDelete(eventoId);
 
         return resp.status(200).json({ok: true});
-
-        
+ 
     } catch (error) {
         return resp.status(400).json({
             ok: false,
@@ -144,7 +141,6 @@ const borrarEvento = async(req, resp = response) => {
           });
     }
 
-  
 }
 
 module.exports = {
