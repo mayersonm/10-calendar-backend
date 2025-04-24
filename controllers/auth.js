@@ -13,8 +13,6 @@ const crearUsuario = async ( req, resp = response ) =>{
 
     let usuario = await Usuario.findOne({  email });
 
-    console.log(usuario)
-
     if ( usuario ) { 
       return resp.status(400).json({
         ok: false,
@@ -45,7 +43,7 @@ const crearUsuario = async ( req, resp = response ) =>{
     console.log(error)
     resp.status(500).json({
       ok: false,
-      msg: 'Por hable con el administrador'
+      msg: 'Por Favor hable con el administrador'
 
     });
   }

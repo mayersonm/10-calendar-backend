@@ -1,17 +1,19 @@
 const { response } = require("express");
+const Evento = require("../models/Evento");
 
 
+const getEventos = async(req, resp = response) => {
 
-const getEventos = (req, resp = response) => {
+    const eventos = await Evento.find()
+                        .populate('user', 'name') // populate user with name
+        ;
 
-
-        
     try {
 
         return resp.status(200).json(
             {
                 ok: true,
-                msg: 'EventoO btenido',
+                eventos
             }
     );
 
@@ -27,32 +29,28 @@ const getEventos = (req, resp = response) => {
   
 }
 
+ 
+const crearEvento = async (req, resp = response) => {
 
-const crearEvento = (req, resp = response) => {
-
-
-
-    console.log(req.body);
-
-    const { tittle, start, end } = req.body;
-    console.log('tittle :', tittle);
-    console.log('start :', start);
-    console.log('end :', end);
+    const evento = new Evento(req.body);
 
     try {
 
-        return resp.status(200).json(
+       evento.user = req.uid;
+
+       const eventoGuardado = await evento.save();
+
+       resp.status(200).json(
             {
                 ok: true,
                 msg: 'Evento Creado',
-            }
-    );
+                eventoGuardado
+            });
 
-        
     } catch (error) {
-        return resp.status(400).json({
+        return resp.status(500).json({
             ok: false,
-            msg: 'Error al obtener eventos por favor hable con el administrador '
+            msg: 'Hable con el administrador ',
       
           });
     }
@@ -60,46 +58,88 @@ const crearEvento = (req, resp = response) => {
   
 }
 
-const actualizarEvento = (req, resp = response) => {
+const actualizarEvento = async (req, resp = response) => {
+
+    const eventoId = req.params.id;
+    const uid = req.uid;
 
     try {
+
+        const evento = await Evento.findById(eventoId);
+
+        if (!evento) {
+            return resp.status(404).json({
+                ok: false,
+                msg: 'Evento no encontrado por favor hable con el administrador '
+            });
+        }
+       
+        if ( evento.user.toString() != uid ) {
+            return resp.status(401).json({
+                ok: false,
+                msg: 'No tiene privilegios para editar este evento'
+            });
+        }
+
+        const nuevoEvento = {
+            ...req.body,
+            user: uid
+        }
+
+        const eventoActualizado = await Evento.findByIdAndUpdate( eventoId , nuevoEvento, { new: true } );
 
         return resp.status(200).json(
             {
                 ok: true,
-                msg: 'Evento Actualizado',
+                evento : eventoActualizado
             }
     );
 
-        
     } catch (error) {
-        return resp.status(400).json({
+
+        console.log(error);
+        return resp.status(500).json({
             ok: false,
-            msg: 'Error al obtener eventos por favor hable con el administrador '
-      
-          });
+            msg: 'Error al actualizar el evento por favor hable con el administrador '
+        });
     }
 
   
 }
 
 
-const borrarEvento = (req, resp = response) => {
+const borrarEvento = async(req, resp = response) => {
 
     try {
 
-        return resp.status(200).json(
-            {
-                ok: true,
-                msg: 'Evento Borrado',
+        const eventoId = req.params.id;
+        const uid = req.uid;
+    
+        const evento = await Evento.findById(eventoId);
+    
+            if (!evento) {
+                return resp.status(404).json({
+                    ok: false,
+                    msg: 'Evento no encontrado por favor hable con el administrador '
+                });
             }
-    );
+           
+            if ( evento.user.toString() != uid ) {
+                return resp.status(401).json({
+                    ok: false,
+                    msg: 'No tiene privilegios para eliminar este evento'
+                });
+            }
+    
+            await Evento.findByIdAndDelete(eventoId);
+
+        return resp.status(200).json({ok: true});
 
         
     } catch (error) {
         return resp.status(400).json({
             ok: false,
-            msg: 'Error al obtener eventos por favor hable con el administrador '
+            msg: 'Error al elimiar el evento por favor hable con el administrador '
       
           });
     }
